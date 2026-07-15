@@ -2,6 +2,15 @@ import Foundation
 
 protocol DuoCardsAPI: Sendable {
     func login(email: String, password: String) async throws -> User
+    func register(
+        request: RegistrationRequest
+    ) async throws -> RegistrationResponse
+    func verifyRegistration(
+        request: VerificationRequest
+    ) async throws -> User
+    func resendVerification(
+        request: ResendVerificationRequest
+    ) async throws
     func restoreSession() async throws -> User
     func logout() async throws
     func fetchFlashcardSets() async throws -> [FlashcardSet]
@@ -23,6 +32,9 @@ struct DuoCardsAPIClient: DuoCardsAPI, Sendable {
     private enum Path {
         static let root = "api/v1"
         static let login = "\(root)/auth/login"
+        static let register = "\(root)/auth/register"
+        static let verify = "\(root)/auth/verify"
+        static let resend = "\(root)/auth/resend"
         static let me = "\(root)/auth/me"
         static let logout = "\(root)/auth/logout"
         static let sets = "\(root)/flashcard-sets"
@@ -43,6 +55,28 @@ struct DuoCardsAPIClient: DuoCardsAPI, Sendable {
             body: LoginRequest(email: email, password: password)
         )
         return response.user
+    }
+
+    func register(
+        request: RegistrationRequest
+    ) async throws -> RegistrationResponse {
+        try await client.send(Path.register, body: request)
+    }
+
+    func verifyRegistration(
+        request: VerificationRequest
+    ) async throws -> User {
+        let response: UserResponse = try await client.send(
+            Path.verify,
+            body: request
+        )
+        return response.user
+    }
+
+    func resendVerification(
+        request: ResendVerificationRequest
+    ) async throws {
+        try await client.perform(Path.resend, body: request)
     }
 
     func restoreSession() async throws -> User {

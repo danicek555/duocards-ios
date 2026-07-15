@@ -5,6 +5,7 @@ struct LoginView: View {
     @Environment(\.colorScheme) private var colorScheme
     @State private var email = ""
     @State private var password = ""
+    @State private var showsRegistration = false
     @FocusState private var focusedField: Field?
 
     private enum Field {
@@ -19,6 +20,7 @@ struct LoginView: View {
                 VStack(spacing: DuoSpacing.xl) {
                     header
                     loginCard
+                    registrationCard
                     nextIterationCard
 #if DEBUG
                     Text("API: \(AppConfiguration.live().baseURL.absoluteString)")
@@ -35,6 +37,16 @@ struct LoginView: View {
                 .frame(maxWidth: .infinity)
             }
             .scrollDismissesKeyboard(.interactively)
+        }
+        .sheet(isPresented: $showsRegistration) {
+            NavigationStack {
+                RegistrationView(api: session.api)
+            }
+        }
+        .onChange(of: session.state) { _, state in
+            if case .signedIn = state {
+                showsRegistration = false
+            }
         }
     }
 
@@ -137,7 +149,7 @@ struct LoginView: View {
             Label("Další iterace", systemImage: "hammer.fill")
                 .font(.subheadline.bold())
                 .foregroundStyle(DuoColors.violet600)
-            Text("Registrace, obnova hesla a Google/Facebook OAuth budou doplněny v následující vertikále.")
+            Text("Obnova hesla a Google/Facebook OAuth budou doplněny v další vertikále.")
                 .font(.footnote)
                 .foregroundStyle(
                     DuoColors.secondaryText(for: colorScheme)
@@ -154,6 +166,29 @@ struct LoginView: View {
         }
     }
 
+    private var registrationCard: some View {
+        VStack(spacing: DuoSpacing.md) {
+            Text("Ještě nemáte účet?")
+                .font(.headline)
+            Text("Zaregistrujte se e-mailem a ověřte účet šestimístným kódem.")
+                .font(.footnote)
+                .foregroundStyle(
+                    DuoColors.secondaryText(for: colorScheme)
+                )
+                .multilineTextAlignment(.center)
+            Button {
+                showsRegistration = true
+            } label: {
+                Label("Vytvořit účet", systemImage: "person.badge.plus")
+                    .fontWeight(.semibold)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 46)
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .duoCard()
+    }
+
     private func submit() {
         focusedField = nil
         Task {
@@ -162,7 +197,7 @@ struct LoginView: View {
     }
 }
 
-private extension View {
+extension View {
     func duoTextField() -> some View {
         self
             .padding(.horizontal, DuoSpacing.md)

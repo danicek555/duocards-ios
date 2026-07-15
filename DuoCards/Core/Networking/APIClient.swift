@@ -66,6 +66,20 @@ actor APIClient {
         _ = try await execute(path: path, method: method, body: nil)
     }
 
+    func perform<Body: Encodable & Sendable>(
+        _ path: String,
+        method: Method = .post,
+        body: Body
+    ) async throws {
+        let encodedBody: Data
+        do {
+            encodedBody = try JSONEncoder().encode(body)
+        } catch {
+            throw APIError.transport(error.localizedDescription)
+        }
+        _ = try await execute(path: path, method: method, body: encodedBody)
+    }
+
     func clearAuthenticationCookies() {
         let baseCookies = cookieStorage.cookies(for: baseURL) ?? []
         for cookie in baseCookies where cookie.name == "auth" {
@@ -118,6 +132,17 @@ actor APIClient {
                     code: envelope?.code,
                     message: envelope?.displayMessage
                         ?? "Přihlášení vypršelo. Přihlaste se prosím znovu."
+                )
+            }
+            if httpResponse.statusCode == 429 {
+                let retryAfter = httpResponse.value(
+                    forHTTPHeaderField: "Retry-After"
+                ).flatMap(Int.init)
+                throw APIError.rateLimited(
+                    code: envelope?.code,
+                    message: envelope?.displayMessage
+                        ?? "Příliš mnoho požadavků. Zkuste to prosím později.",
+                    retryAfterSeconds: retryAfter
                 )
             }
             throw APIError.server(

@@ -184,7 +184,8 @@ DuoCardsApp
 
 Fastify backend nyní poskytuje:
 
-- `/api/v1/auth/login`, `/me` a `/logout`;
+- `/api/v1/auth/register`, `/verify`, `/resend`, `/login`, `/me` a
+  `/logout`;
 - `GET/POST /api/v1/flashcard-sets` a
   `GET/PATCH/DELETE /api/v1/flashcard-sets/:id`;
 - `/api/v1/user/coins`;
@@ -199,6 +200,9 @@ zatím přes tento minimální editor nemění.
 Web volá tyto cesty přes `/shared-api` rewrite. iOS volá `/api/v1`
 přímo. Oba klienti v tomto prototypu sdílejí kompatibilní sedmidenní HMAC
 cookie session; stejný `AUTH_SECRET` proto musí být nastaven v obou serverech.
+Registrační kód je navíc svázaný s nezávislým registračním pokusem a
+256bitovou HttpOnly cookie. Cizí opakovaná registrace stejného e-mailu tak
+nemůže přepsat heslo ani ověřit pokus jiného zařízení.
 
 ### Cílové `/api/v1`
 
@@ -224,6 +228,9 @@ cookie session; stejný `AUTH_SECRET` proto musí být nastaven v obou serverech
 4. **Live autorita** — dnešní Ably token endpoint není room-scoped a role hosta je klientská. Přidat serverový `LiveRoom`, členství, role a capability omezené na konkrétní room.
 5. **Média** — validovat vlastnictví, MIME a velikost; odstranit orphan records a přesunout data mimo PostgreSQL.
 6. **API read side effects** — `GET /flashcard-sets` nesmí opravovat tagy zápisem během čtení.
+7. **Identity provoz** — před horizontálním škálováním přesunout rate limity
+   do sdíleného Redis store, přidat per-attempt počítadlo chybných OTP a
+   transakční e-mailový outbox s retry/observabilitou.
 
 ## 8. App Store release gates
 
@@ -373,16 +380,18 @@ Celkem pro bezpečnou plnou paritu přibližně 16–26 vývojářských týdnů
 
 ## 12. Stav implementace a další řez
 
-První coding iterace je implementovaná:
+První dvě coding iterace jsou implementované:
 
 1. samostatný Fastify backend a `/api/v1` vertikála;
-2. webový proxy adapter s legacy fallbackem;
+2. webový proxy adapter a compatibility identity aliasy bez legacy auth flow;
 3. Xcode/SwiftUI projekt a design systém podle `globals.css`;
-4. `DuoCardsAPI`, cookie session restore a e-mail login/logout;
+4. `DuoCardsAPI`, cookie session restore, e-mail login/logout, registrace,
+   šestimístné ověření a resend;
 5. dashboard, seznam a detail sad;
 6. shuffle, flip a previous/next studium;
-7. backend i iOS test target a sestavení z příkazové řádky.
+7. nativní vytvoření, úprava a smazání privátní textové sady;
+8. backend i iOS test target a sestavení z příkazové řádky.
 
-Další vertikála bude registrace, ověření e-mailu a reset hesla,
-následovaná bezpečným create/edit/delete flow. Plná 1:1 parita zůstává
-rozdělená do milníků M1–M5 výše.
+Další identity vertikála bude forgotten/reset password. Potom naváže
+dashboard search/filtry, daily reward a bezpečný completion reward. Plná
+1:1 parita zůstává rozdělená do milníků M1–M5 výše.

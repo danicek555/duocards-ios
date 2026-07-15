@@ -52,6 +52,7 @@ launch environment proměnnou `DUOCARDS_DEMO_SCREEN` s hodnotou `login`,
 
 ## Aktuální rozsah
 
+- e-mailová registrace s 29 podporovanými locale, kontrolou síly hesla, šestimístným ověřovacím kódem a resend cooldownem;
 - obnovení cookie session, přihlášení a odhlášení;
 - dashboard se sadami, součtem slov a mincemi;
 - detail sady včetně seznamu slov;
@@ -60,10 +61,10 @@ launch environment proměnnou `DUOCARDS_DEMO_SCREEN` s hodnotou `login`,
 - nativní studijní obrazovka s otočením karty, navigací zpět/další a načtením obrázku i výslovnosti z oddělených media endpointů;
 - dekódování obrázků uložených jako data URL;
 - SwiftUI previews s lokálními ukázkovými daty;
-- unit testy pro data URL, tolerantní dekódování API modelů a validaci
-  editoru včetně mutation DTO.
+- unit testy pro data URL, tolerantní dekódování API modelů, registrační
+  state flow a validaci editoru včetně mutation DTO.
 
-Registrace a OAuth jsou v přihlašovací obrazovce záměrně označené jako další iterace. Tlačítka nejsou aktivní a aplikace kvůli nim nespadne.
+Obnova hesla a nativní OAuth zůstávají dalšími identity vertikálami.
 
 ## Ověření z terminálu
 

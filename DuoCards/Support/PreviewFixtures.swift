@@ -76,11 +76,14 @@ enum PreviewFixtures {
 }
 
 actor MockDuoCardsAPI: DuoCardsAPI {
-    private let user: User
+    static let validVerificationCode = "123456"
+
+    private var user: User
     private var sets: [FlashcardSet]
     private let coins: Int
     private var nextSetID: Int
     private var nextWordID: Int
+    private var pendingRegistration: RegistrationRequest?
 
     init(
         user: User = PreviewFixtures.user,
@@ -98,6 +101,57 @@ actor MockDuoCardsAPI: DuoCardsAPI {
 
     func login(email: String, password: String) async throws -> User {
         user
+    }
+
+    func register(
+        request: RegistrationRequest
+    ) async throws -> RegistrationResponse {
+        pendingRegistration = request
+        return RegistrationResponse(
+            email: request.email,
+            requiresVerification: true
+        )
+    }
+
+    func verifyRegistration(
+        request: VerificationRequest
+    ) async throws -> User {
+        guard let pendingRegistration,
+              pendingRegistration.email == request.email else {
+            throw APIError.server(
+                status: 404,
+                code: "PENDING_REGISTRATION_NOT_FOUND",
+                message: "Čekající registrace nebyla nalezena."
+            )
+        }
+        guard request.code == Self.validVerificationCode else {
+            throw APIError.server(
+                status: 400,
+                code: "INVALID_VERIFICATION_CODE",
+                message: "Ověřovací kód není správný."
+            )
+        }
+        let verifiedUser = User(
+            id: user.id + 1,
+            email: pendingRegistration.email,
+            nickname: pendingRegistration.nickname,
+            locale: pendingRegistration.locale
+        )
+        user = verifiedUser
+        self.pendingRegistration = nil
+        return verifiedUser
+    }
+
+    func resendVerification(
+        request: ResendVerificationRequest
+    ) async throws {
+        guard pendingRegistration?.email == request.email else {
+            throw APIError.server(
+                status: 404,
+                code: "PENDING_REGISTRATION_NOT_FOUND",
+                message: "Čekající registrace nebyla nalezena."
+            )
+        }
     }
 
     func restoreSession() async throws -> User {

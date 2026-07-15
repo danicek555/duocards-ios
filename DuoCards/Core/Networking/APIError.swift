@@ -4,6 +4,11 @@ enum APIError: LocalizedError, Sendable {
     case invalidURL
     case invalidResponse
     case unauthorized(code: String?, message: String)
+    case rateLimited(
+        code: String?,
+        message: String,
+        retryAfterSeconds: Int?
+    )
     case server(status: Int, code: String?, message: String)
     case decoding(String)
     case transport(String)
@@ -15,6 +20,8 @@ enum APIError: LocalizedError, Sendable {
         case .invalidResponse:
             "Server vrátil neplatnou odpověď."
         case let .unauthorized(_, message):
+            message
+        case let .rateLimited(_, message, _):
             message
         case let .server(_, _, message):
             message

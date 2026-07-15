@@ -79,6 +79,11 @@ final class AppSession {
         authMessage = nil
     }
 
+    func completeAuthentication(_ user: User) {
+        authMessage = nil
+        state = .signedIn(user)
+    }
+
     func expireSession() {
         state = .signedOut
         authMessage = APIError.sessionExpired.errorDescription
