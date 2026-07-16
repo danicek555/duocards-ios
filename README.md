@@ -4,11 +4,13 @@ První nativní vertikála DuoCards je SwiftUI aplikace pro iOS 17 a novější.
 
 ## Spuštění
 
-1. Spusť lokální DuoCards backend na portu `4000`.
+1. Ujisti se, že produkční DuoCards backend odpovídá na
+   `https://duocards-backend-731652720086.europe-west1.run.app/health`.
 2. Otevři `DuoCards.xcodeproj` v Xcode.
 3. Vyber scheme **DuoCards**, iOS Simulator a spusť aplikaci.
 
-Výchozí adresa API v konfiguraci **Debug** je `http://localhost:4000`. Lze ji změnit bez zásahu do kódu:
+Konfigurace **Debug** i **Release** ve výchozím stavu používají produkční
+Cloud Run backend. Adresu lze pro lokální vývoj změnit bez zásahu do kódu:
 
 - v Xcode scheme přidej launch argument `-duocardsAPIBaseURL https://example.com`, nebo
 - nastav environment proměnnou `DUOCARDS_API_BASE_URL`.
@@ -20,7 +22,9 @@ Poznámka: `localhost` v iOS Simulatoru odkazuje na Mac. Pro fyzické zařízen�
 použij HTTPS vývojovou adresu dostupnou z telefonu. Dočasné nezabezpečené LAN
 HTTP vyžaduje samostatnou, úzce omezenou ATS výjimku a nepatří do Release.
 
-Konfigurace **Release** používá záměrně nefunkční placeholder `https://configure-production-api.invalid`, aby archiv omylem nemířil na lokální počítač ani na neodsouhlasený server. Před distribucí nastav build setting `DUOCARDS_API_BASE_URL` na skutečný HTTPS endpoint produkčního Fastify backendu.
+Produkční API origin je
+`https://duocards-backend-731652720086.europe-west1.run.app`. Klient si cestu
+`/api/v1` přidá sám.
 
 Reset hesla umí vložit samotný 43znakový base64url token, legacy 64znakový
 hex token nebo celý HTTPS odkaz `/reset-password#token=...`; po dobu přechodu

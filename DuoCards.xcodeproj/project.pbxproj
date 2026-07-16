@@ -325,7 +325,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = THQFX7GX23;
-				DUOCARDS_API_BASE_URL = "http://localhost:4000";
+				DUOCARDS_API_BASE_URL = "https://duocards-backend-731652720086.europe-west1.run.app";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Config/Info.plist;
@@ -351,7 +351,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = THQFX7GX23;
-				DUOCARDS_API_BASE_URL = "https://configure-production-api.invalid";
+				DUOCARDS_API_BASE_URL = "https://duocards-backend-731652720086.europe-west1.run.app";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Config/Info.plist;
