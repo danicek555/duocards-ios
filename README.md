@@ -1,6 +1,6 @@
 # DuoCards pro iOS
 
-První nativní vertikála DuoCards je SwiftUI aplikace pro iOS 17 a novější. Nevyužívá externí balíčky a komunikuje s novým sdíleným backendem přes `/api/v1` s cookie session.
+První nativní vertikála DuoCards je SwiftUI aplikace pro iOS 17 a novější. Nevyužívá externí balíčky a komunikuje se samostatným [DuoCards backendem](https://github.com/danicek555/duocards-backend) přes `/api/v1` s cookie session.
 
 ## Spuštění
 
@@ -81,7 +81,7 @@ Nativní OAuth zůstává další identity vertikálou.
 
 ```sh
 xcodebuild \
-  -project ios/DuoCards.xcodeproj \
+  -project DuoCards.xcodeproj \
   -scheme DuoCards \
   -destination 'generic/platform=iOS Simulator' \
   -derivedDataPath /tmp/DuoCardsDerivedData \
@@ -93,10 +93,10 @@ Testy lze následně spustit na konkrétním dostupném simulátoru přes akci `
 
 ## Struktura
 
-- `App` – vstup aplikace, session a přepínání přihlášeného stavu;
-- `Core` – konfigurace, networking, design tokeny a utility;
-- `Domain` – API modely;
-- `Features` – přihlášení, dashboard, editor/detail sady a studium;
-- `Support` – mock API a data pro previews.
+- `DuoCards/App` – vstup aplikace, session a přepínání přihlášeného stavu;
+- `DuoCards/Core` – konfigurace, networking, design tokeny a utility;
+- `DuoCards/Domain` – API modely;
+- `DuoCards/Features` – přihlášení, dashboard, editor/detail sady a studium;
+- `DuoCards/Support` – mock API a data pro previews.
 
 Další fáze jsou rozepsané v `IMPLEMENTATION_PLAN.md`.

@@ -1,9 +1,11 @@
 # DuoCards pro iOS — implementační plán
 
 Stav specifikace: 15. 7. 2026  
-Zdroj pravdy: aktuální implementace v `src/`, nový kontrakt v
-`backend/src/`, legacy API routy v `src/app/api/` a datový model v
-`backend/prisma/schema.prisma`.
+Zdroj pravdy: aktuální iOS implementace v `DuoCards/` a testy v
+`DuoCardsTests/`; nový API kontrakt a datový model jsou v samostatném
+[backend repozitáři](https://github.com/danicek555/duocards-backend) v
+`src/` a `prisma/schema.prisma`. Legacy Next.js API routy zůstávají ve
+[webovém repozitáři](https://github.com/danicek555/Duocards) v `src/app/api/`.
 
 ## 1. Cíl a význam „1:1“
 
