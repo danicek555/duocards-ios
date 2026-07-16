@@ -23,9 +23,9 @@ actor APIClient {
         configuration.httpCookieStorage = cookieStorage
         configuration.httpShouldSetCookies = true
         configuration.httpCookieAcceptPolicy = .always
-        configuration.timeoutIntervalForRequest = 30
-        configuration.timeoutIntervalForResource = 60
-        configuration.waitsForConnectivity = true
+        configuration.timeoutIntervalForRequest = 15
+        configuration.timeoutIntervalForResource = 20
+        configuration.waitsForConnectivity = false
         configuration.requestCachePolicy = .reloadRevalidatingCacheData
         session = URLSession(configuration: configuration)
     }
@@ -116,7 +116,7 @@ actor APIClient {
         do {
             (data, response) = try await session.data(for: request)
         } catch {
-            throw APIError.transport(error.localizedDescription)
+            throw APIError.transport(Self.transportMessage(for: error))
         }
 
         guard let httpResponse = response as? HTTPURLResponse else {
@@ -156,6 +156,23 @@ actor APIClient {
         }
 
         return data
+    }
+
+    private static func transportMessage(for error: Error) -> String {
+        guard let urlError = error as? URLError else {
+            return error.localizedDescription
+        }
+
+        switch urlError.code {
+        case .timedOut:
+            return "Připojení k serveru trvalo příliš dlouho. Zkuste to znovu."
+        case .notConnectedToInternet, .networkConnectionLost:
+            return "Zkontrolujte připojení k internetu a zkuste to znovu."
+        case .cannotConnectToHost, .cannotFindHost, .dnsLookupFailed:
+            return "K serveru DuoCards se nepodařilo připojit."
+        default:
+            return urlError.localizedDescription
+        }
     }
 
     private func decode<Response: Decodable>(

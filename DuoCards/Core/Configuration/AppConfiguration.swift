@@ -1,7 +1,9 @@
 import Foundation
 
 struct AppConfiguration: Sendable {
-    static let defaultBaseURL = URL(string: "http://localhost:4000")!
+    static let defaultBaseURL = URL(
+        string: "https://duocards-backend-731652720086.europe-west1.run.app"
+    )!
 
     let baseURL: URL
 
@@ -52,10 +54,19 @@ struct AppConfiguration: Sendable {
             let url = URL(string: trimmed),
             let scheme = url.scheme?.lowercased(),
             scheme == "http" || scheme == "https",
-            url.host != nil
+            let host = url.host,
+            isReachableHost(host)
         else {
             return nil
         }
         return url
+    }
+
+    private static func isReachableHost(_ host: String) -> Bool {
+#if targetEnvironment(simulator)
+        true
+#else
+        !["localhost", "127.0.0.1", "::1"].contains(host.lowercased())
+#endif
     }
 }
