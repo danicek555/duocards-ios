@@ -2,6 +2,12 @@ import Foundation
 
 protocol DuoCardsAPI: Sendable {
     func login(email: String, password: String) async throws -> User
+    func requestPasswordReset(
+        request: ForgotPasswordRequest
+    ) async throws -> PasswordResetResponse
+    func resetPassword(
+        request: ResetPasswordRequest
+    ) async throws -> PasswordResetResponse
     func register(
         request: RegistrationRequest
     ) async throws -> RegistrationResponse
@@ -32,6 +38,8 @@ struct DuoCardsAPIClient: DuoCardsAPI, Sendable {
     private enum Path {
         static let root = "api/v1"
         static let login = "\(root)/auth/login"
+        static let forgotPassword = "\(root)/auth/forgot-password"
+        static let resetPassword = "\(root)/auth/reset-password"
         static let register = "\(root)/auth/register"
         static let verify = "\(root)/auth/verify"
         static let resend = "\(root)/auth/resend"
@@ -55,6 +63,18 @@ struct DuoCardsAPIClient: DuoCardsAPI, Sendable {
             body: LoginRequest(email: email, password: password)
         )
         return response.user
+    }
+
+    func requestPasswordReset(
+        request: ForgotPasswordRequest
+    ) async throws -> PasswordResetResponse {
+        try await client.send(Path.forgotPassword, body: request)
+    }
+
+    func resetPassword(
+        request: ResetPasswordRequest
+    ) async throws -> PasswordResetResponse {
+        try await client.send(Path.resetPassword, body: request)
     }
 
     func register(

@@ -98,6 +98,16 @@ struct LoginView: View {
                     .submitLabel(.go)
                     .onSubmit(submit)
                     .duoTextField()
+
+                HStack {
+                    Spacer()
+                    Button("Zapomněli jste heslo?") {
+                        focusedField = nil
+                        password = ""
+                        session.presentPasswordReset()
+                    }
+                    .font(.footnote.weight(.semibold))
+                }
             }
 
             if let message = session.authMessage {
@@ -149,7 +159,7 @@ struct LoginView: View {
             Label("Další iterace", systemImage: "hammer.fill")
                 .font(.subheadline.bold())
                 .foregroundStyle(DuoColors.violet600)
-            Text("Obnova hesla a Google/Facebook OAuth budou doplněny v další vertikále.")
+            Text("Přihlášení přes Google a Facebook bude doplněno v další vertikále.")
                 .font(.footnote)
                 .foregroundStyle(
                     DuoColors.secondaryText(for: colorScheme)

@@ -230,7 +230,10 @@ nemůže přepsat heslo ani ověřit pokus jiného zařízení.
 6. **API read side effects** — `GET /flashcard-sets` nesmí opravovat tagy zápisem během čtení.
 7. **Identity provoz** — před horizontálním škálováním přesunout rate limity
    do sdíleného Redis store, přidat per-attempt počítadlo chybných OTP a
-   transakční e-mailový outbox s retry/observabilitou.
+   transakční e-mailový outbox s retry/observabilitou. Reset outbox musí vracet
+   HTTP odpověď před provider I/O a dělat srovnatelnou DB práci pro existující i
+   neexistující účet; jinak synchronní odeslání prozrazuje existenci účtu
+   časováním.
 
 ## 8. App Store release gates
 
@@ -240,6 +243,8 @@ Tyto položky nejsou rozšířením produktu, ale podmínkou bezpečného vydán
 - umožnit zahájit smazání účtu přímo v aplikaci;
 - veřejné sady a live chat považovat za user-generated content: filtrování, report, blokování a dostupný kontakt;
 - privacy policy v aplikaci a App Store metadata;
+- pro HTTPS reset odkazy nasadit Associated Domains entitlement a AASA s
+  omezením na `/reset-password`; nevlastněné custom URL scheme nepoužívat;
 - jasný souhlas/disclosure před odesíláním uživatelského obsahu třetí straně/AI;
 - připravit plně funkční review/demo účet;
 - pokud vznikne prodej AI coinů, digitální měna musí používat StoreKit/IAP a serverové ověření transakcí.
@@ -380,7 +385,7 @@ Celkem pro bezpečnou plnou paritu přibližně 16–26 vývojářských týdnů
 
 ## 12. Stav implementace a další řez
 
-První dvě coding iterace jsou implementované:
+První tři coding iterace jsou implementované:
 
 1. samostatný Fastify backend a `/api/v1` vertikála;
 2. webový proxy adapter a compatibility identity aliasy bez legacy auth flow;
@@ -391,7 +396,9 @@ První dvě coding iterace jsou implementované:
 6. shuffle, flip a previous/next studium;
 7. nativní vytvoření, úprava a smazání privátní textové sady;
 8. backend i iOS test target a sestavení z příkazové řádky.
+9. forgotten/reset password s jednotnou veřejnou odpovědí na sdíleném backendu,
+   webu a iOS, včetně jednorázového 30minutového tokenu a strong-password
+   validace; durable outbox zůstává P0 gate před veřejným provozem.
 
-Další identity vertikála bude forgotten/reset password. Potom naváže
-dashboard search/filtry, daily reward a bezpečný completion reward. Plná
-1:1 parita zůstává rozdělená do milníků M1–M5 výše.
+Další řez bude dashboard search/filtry, daily reward a bezpečný completion
+reward. Plná 1:1 parita zůstává rozdělená do milníků M1–M5 výše.

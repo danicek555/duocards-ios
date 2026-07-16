@@ -42,6 +42,9 @@ struct DuoCardsApp: App {
                         await session.restoreIfNeeded()
                     }
                 }
+                .onOpenURL { url in
+                    session.handleIncomingURL(url)
+                }
         }
     }
 

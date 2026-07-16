@@ -14,6 +14,8 @@ final class AppSession {
     private(set) var state: State
     private(set) var isAuthenticating = false
     var authMessage: String?
+    private(set) var isPasswordResetPresented = false
+    private(set) var passwordResetToken: String?
     private var didAttemptRestore = false
 
     init(
@@ -75,6 +77,34 @@ final class AppSession {
         } catch {
             // Local sign-out must remain available even when the server is offline.
         }
+        state = .signedOut
+        authMessage = nil
+    }
+
+    func presentPasswordReset() {
+        passwordResetToken = nil
+        isPasswordResetPresented = true
+        authMessage = nil
+    }
+
+    @discardableResult
+    func handleIncomingURL(_ url: URL) -> Bool {
+        guard let token = PasswordResetTokenParser.token(fromURL: url) else {
+            return false
+        }
+        passwordResetToken = token
+        isPasswordResetPresented = true
+        authMessage = nil
+        return true
+    }
+
+    func dismissPasswordReset() {
+        passwordResetToken = nil
+        isPasswordResetPresented = false
+    }
+
+    func completePasswordReset() {
+        passwordResetToken = nil
         state = .signedOut
         authMessage = nil
     }

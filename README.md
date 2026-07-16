@@ -22,6 +22,14 @@ HTTP vyžaduje samostatnou, úzce omezenou ATS výjimku a nepatří do Release.
 
 Konfigurace **Release** používá záměrně nefunkční placeholder `https://configure-production-api.invalid`, aby archiv omylem nemířil na lokální počítač ani na neodsouhlasený server. Před distribucí nastav build setting `DUOCARDS_API_BASE_URL` na skutečný HTTPS endpoint produkčního Fastify backendu.
 
+Reset hesla umí vložit samotný 43znakový base64url token, legacy 64znakový
+hex token nebo celý HTTPS odkaz `/reset-password#token=...`; po dobu přechodu
+umí načíst i starý query tvar `?token=...`. App-level
+`onOpenURL` je připravený jen pro stejný HTTPS tvar; záměrně není registrované
+nevlastněné custom URL scheme. Automatické otevření odkazu z e-mailu v aplikaci
+je release gate: produkční doména musí publikovat správné AASA a target musí mít
+omezený Associated Domains entitlement. Do té doby uživatel vloží celý odkaz.
+
 ## Spuštění na fyzickém iPhonu
 
 1. Zpřístupni backend na HTTPS adrese dosažitelné z iPhonu. Nejjednodušší
@@ -53,6 +61,9 @@ launch environment proměnnou `DUOCARDS_DEMO_SCREEN` s hodnotou `login`,
 ## Aktuální rozsah
 
 - e-mailová registrace s 29 podporovanými locale, kontrolou síly hesla, šestimístným ověřovacím kódem a resend cooldownem;
+- žádost o obnovu hesla s jednotnou veřejnou odpovědí, vložení reset
+  odkazu/tokenu, stejná strong-password validace a bezpečné vyčištění tokenu i
+  hesel;
 - obnovení cookie session, přihlášení a odhlášení;
 - dashboard se sadami, součtem slov a mincemi;
 - detail sady včetně seznamu slov;
@@ -61,10 +72,10 @@ launch environment proměnnou `DUOCARDS_DEMO_SCREEN` s hodnotou `login`,
 - nativní studijní obrazovka s otočením karty, navigací zpět/další a načtením obrázku i výslovnosti z oddělených media endpointů;
 - dekódování obrázků uložených jako data URL;
 - SwiftUI previews s lokálními ukázkovými daty;
-- unit testy pro data URL, tolerantní dekódování API modelů, registrační
-  state flow a validaci editoru včetně mutation DTO.
+- unit testy pro data URL, tolerantní dekódování API modelů, registrační a
+  password-reset state flow a validaci editoru včetně mutation DTO.
 
-Obnova hesla a nativní OAuth zůstávají dalšími identity vertikálami.
+Nativní OAuth zůstává další identity vertikálou.
 
 ## Ověření z terminálu
 

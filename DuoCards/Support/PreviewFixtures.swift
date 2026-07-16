@@ -84,6 +84,11 @@ actor MockDuoCardsAPI: DuoCardsAPI {
     private var nextSetID: Int
     private var nextWordID: Int
     private var pendingRegistration: RegistrationRequest?
+    private var passwordResetWasRequested = false
+    private var lastForgotPasswordRequest: ForgotPasswordRequest?
+    private var lastResetPasswordRequest: ResetPasswordRequest?
+    private var nextForgotPasswordError: APIError?
+    private var nextResetPasswordError: APIError?
 
     init(
         user: User = PreviewFixtures.user,
@@ -101,6 +106,55 @@ actor MockDuoCardsAPI: DuoCardsAPI {
 
     func login(email: String, password: String) async throws -> User {
         user
+    }
+
+    func requestPasswordReset(
+        request: ForgotPasswordRequest
+    ) async throws -> PasswordResetResponse {
+        lastForgotPasswordRequest = request
+        if let error = nextForgotPasswordError {
+            nextForgotPasswordError = nil
+            throw error
+        }
+        passwordResetWasRequested = true
+        return PasswordResetResponse(
+            message: "Pokud účet existuje, poslali jsme instrukce k obnově hesla."
+        )
+    }
+
+    func resetPassword(
+        request: ResetPasswordRequest
+    ) async throws -> PasswordResetResponse {
+        lastResetPasswordRequest = request
+        if let error = nextResetPasswordError {
+            nextResetPasswordError = nil
+            throw error
+        }
+        guard passwordResetWasRequested || !request.token.isEmpty else {
+            throw APIError.server(
+                status: 400,
+                code: "INVALID_RESET_TOKEN",
+                message: "Token pro obnovu hesla není platný."
+            )
+        }
+        passwordResetWasRequested = false
+        return PasswordResetResponse(message: "Heslo bylo změněno.")
+    }
+
+    func failNextForgotPasswordRequest(with error: APIError) {
+        nextForgotPasswordError = error
+    }
+
+    func failNextResetPasswordRequest(with error: APIError) {
+        nextResetPasswordError = error
+    }
+
+    func capturedForgotPasswordRequest() -> ForgotPasswordRequest? {
+        lastForgotPasswordRequest
+    }
+
+    func capturedResetPasswordRequest() -> ResetPasswordRequest? {
+        lastResetPasswordRequest
     }
 
     func register(

@@ -15,6 +15,22 @@ struct RootView: View {
             }
         }
         .animation(.easeInOut(duration: 0.2), value: session.state)
+        .sheet(
+            isPresented: Binding(
+                get: { session.isPasswordResetPresented },
+                set: { isPresented in
+                    if !isPresented { session.dismissPasswordReset() }
+                }
+            )
+        ) {
+            NavigationStack {
+                PasswordResetFlowView(
+                    api: session.api,
+                    initialToken: session.passwordResetToken,
+                    onPasswordReset: session.completePasswordReset
+                )
+            }
+        }
     }
 }
 
