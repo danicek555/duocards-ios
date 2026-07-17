@@ -54,7 +54,10 @@ struct DuoCardsAPIClient: DuoCardsAPI, Sendable {
     private let client: APIClient
 
     init(configuration: AppConfiguration) {
-        client = APIClient(baseURL: configuration.baseURL)
+        client = APIClient(
+            baseURL: configuration.baseURL,
+            fallbackBaseURL: configuration.fallbackBaseURL
+        )
     }
 
     func login(email: String, password: String) async throws -> User {

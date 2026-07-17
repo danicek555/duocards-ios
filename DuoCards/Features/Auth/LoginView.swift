@@ -158,7 +158,11 @@ struct LoginView: View {
         VStack(spacing: DuoSpacing.sm) {
             Label("Další iterace", systemImage: "hammer.fill")
                 .font(.subheadline.bold())
-                .foregroundStyle(DuoColors.violet600)
+                .foregroundStyle(
+                    colorScheme == .dark
+                        ? DuoColors.violet400
+                        : DuoColors.violet600
+                )
             Text("Přihlášení přes Google a Facebook bude doplněno v další vertikále.")
                 .font(.footnote)
                 .foregroundStyle(
@@ -168,7 +172,11 @@ struct LoginView: View {
         }
         .padding(DuoSpacing.lg)
         .frame(maxWidth: .infinity)
-        .background(DuoColors.violet100.opacity(0.7))
+        .background(
+            colorScheme == .dark
+                ? DuoColors.gray800
+                : DuoColors.violet100.opacity(0.7)
+        )
         .clipShape(RoundedRectangle(cornerRadius: DuoRadius.medium))
         .overlay {
             RoundedRectangle(cornerRadius: DuoRadius.medium)
@@ -195,6 +203,7 @@ struct LoginView: View {
                     .frame(height: 46)
             }
             .buttonStyle(.borderedProminent)
+            .tint(DuoColors.indigo600)
         }
         .duoCard()
     }
@@ -207,9 +216,11 @@ struct LoginView: View {
     }
 }
 
-extension View {
-    func duoTextField() -> some View {
-        self
+private struct DuoTextFieldModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .foregroundStyle(DuoColors.gray900)
+            .tint(DuoColors.indigo600)
             .padding(.horizontal, DuoSpacing.md)
             .frame(height: 48)
             .background(DuoColors.gray50)
@@ -218,6 +229,12 @@ extension View {
                 RoundedRectangle(cornerRadius: DuoRadius.medium)
                     .stroke(DuoColors.gray200)
             }
+    }
+}
+
+extension View {
+    func duoTextField() -> some View {
+        modifier(DuoTextFieldModifier())
     }
 }
 

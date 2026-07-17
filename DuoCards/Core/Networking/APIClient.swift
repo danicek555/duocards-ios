@@ -9,23 +9,26 @@ actor APIClient {
     }
 
     private let baseURL: URL
+    private let fallbackBaseURL: URL?
     private let cookieStorage: HTTPCookieStorage
     private let session: URLSession
 
     init(
         baseURL: URL,
+        fallbackBaseURL: URL? = nil,
         cookieStorage: HTTPCookieStorage = .shared
     ) {
         self.baseURL = baseURL
+        self.fallbackBaseURL = fallbackBaseURL
         self.cookieStorage = cookieStorage
 
         let configuration = URLSessionConfiguration.default
         configuration.httpCookieStorage = cookieStorage
         configuration.httpShouldSetCookies = true
         configuration.httpCookieAcceptPolicy = .always
-        configuration.timeoutIntervalForRequest = 30
-        configuration.timeoutIntervalForResource = 60
-        configuration.waitsForConnectivity = true
+        configuration.timeoutIntervalForRequest = 15
+        configuration.timeoutIntervalForResource = 20
+        configuration.waitsForConnectivity = false
         configuration.requestCachePolicy = .reloadRevalidatingCacheData
         session = URLSession(configuration: configuration)
     }
@@ -81,9 +84,11 @@ actor APIClient {
     }
 
     func clearAuthenticationCookies() {
-        let baseCookies = cookieStorage.cookies(for: baseURL) ?? []
-        for cookie in baseCookies where cookie.name == "auth" {
-            cookieStorage.deleteCookie(cookie)
+        for url in [baseURL, fallbackBaseURL].compactMap({ $0 }) {
+            for cookie in cookieStorage.cookies(for: url) ?? []
+            where cookie.name == "auth" {
+                cookieStorage.deleteCookie(cookie)
+            }
         }
     }
 
@@ -95,6 +100,22 @@ actor APIClient {
         let cleanPath = path.trimmingCharacters(
             in: CharacterSet(charactersIn: "/")
         )
+        return try await execute(
+            cleanPath: cleanPath,
+            method: method,
+            body: body,
+            baseURL: baseURL,
+            mayFallback: true
+        )
+    }
+
+    private func execute(
+        cleanPath: String,
+        method: Method,
+        body: Data?,
+        baseURL: URL,
+        mayFallback: Bool
+    ) async throws -> Data {
         let url = baseURL.appending(path: cleanPath)
         guard url.scheme != nil, url.host != nil else {
             throw APIError.invalidURL
@@ -116,13 +137,33 @@ actor APIClient {
         do {
             (data, response) = try await session.data(for: request)
         } catch {
-            throw APIError.transport(error.localizedDescription)
+            if mayFallback, let fallbackBaseURL {
+                return try await execute(
+                    cleanPath: cleanPath,
+                    method: method,
+                    body: body,
+                    baseURL: fallbackBaseURL,
+                    mayFallback: false
+                )
+            }
+            throw APIError.transport(Self.transportMessage(for: error))
         }
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw APIError.invalidResponse
         }
         guard (200..<300).contains(httpResponse.statusCode) else {
+            if mayFallback,
+               [502, 503, 504].contains(httpResponse.statusCode),
+               let fallbackBaseURL {
+                return try await execute(
+                    cleanPath: cleanPath,
+                    method: method,
+                    body: body,
+                    baseURL: fallbackBaseURL,
+                    mayFallback: false
+                )
+            }
             let envelope = try? JSONDecoder().decode(
                 APIErrorEnvelope.self,
                 from: data
@@ -156,6 +197,23 @@ actor APIClient {
         }
 
         return data
+    }
+
+    private static func transportMessage(for error: Error) -> String {
+        guard let urlError = error as? URLError else {
+            return error.localizedDescription
+        }
+
+        switch urlError.code {
+        case .timedOut:
+            return "Připojení k serveru trvalo příliš dlouho. Zkuste to znovu."
+        case .notConnectedToInternet, .networkConnectionLost:
+            return "Zkontrolujte připojení k internetu a zkuste to znovu."
+        case .cannotConnectToHost, .cannotFindHost, .dnsLookupFailed:
+            return "K serveru DuoCards se nepodařilo připojit."
+        default:
+            return urlError.localizedDescription
+        }
     }
 
     private func decode<Response: Decodable>(
