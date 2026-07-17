@@ -6,9 +6,11 @@ struct AppConfiguration: Sendable {
     )!
 
     let baseURL: URL
+    let fallbackBaseURL: URL?
 
-    init(baseURL: URL) {
+    init(baseURL: URL, fallbackBaseURL: URL? = nil) {
         self.baseURL = baseURL
+        self.fallbackBaseURL = fallbackBaseURL
     }
 
     static func live(
@@ -16,8 +18,34 @@ struct AppConfiguration: Sendable {
         processInfo: ProcessInfo = .processInfo
     ) -> AppConfiguration {
         AppConfiguration(
-            baseURL: resolvedBaseURL(bundle: bundle, processInfo: processInfo)
+            baseURL: resolvedBaseURL(bundle: bundle, processInfo: processInfo),
+            fallbackBaseURL: resolvedFallbackBaseURL(
+                bundle: bundle,
+                processInfo: processInfo
+            )
         )
+    }
+
+    private static func resolvedFallbackBaseURL(
+        bundle: Bundle,
+        processInfo: ProcessInfo
+    ) -> URL? {
+        let arguments = processInfo.arguments
+        if let index = arguments.firstIndex(of: "-duocardsAPIFallbackURL"),
+           arguments.indices.contains(index + 1),
+           let url = validURL(arguments[index + 1]) {
+            return url
+        }
+        if let value = processInfo.environment["DUOCARDS_API_FALLBACK_URL"],
+           let url = validURL(value) {
+            return url
+        }
+        if let value = bundle.object(
+            forInfoDictionaryKey: "DuoCardsAPIFallbackURL"
+        ) as? String {
+            return validURL(value)
+        }
+        return nil
     }
 
     private static func resolvedBaseURL(

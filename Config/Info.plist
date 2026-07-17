@@ -22,6 +22,8 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>DuoCardsAPIBaseURL</key>
 	<string>$(DUOCARDS_API_BASE_URL)</string>
+	<key>DuoCardsAPIFallbackURL</key>
+	<string>$(DUOCARDS_API_FALLBACK_URL)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSLocalNetworkUsageDescription</key>

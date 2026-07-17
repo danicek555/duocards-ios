@@ -15,12 +15,17 @@ Cloud Run backend. Adresu lze pro lokální vývoj změnit bez zásahu do kódu:
 - v Xcode scheme přidej launch argument `-duocardsAPIBaseURL https://example.com`, nebo
 - nastav environment proměnnou `DUOCARDS_API_BASE_URL`.
 
+Volitelnou záložní adresu nastav přes `DUOCARDS_API_FALLBACK_URL` nebo launch
+argument `-duocardsAPIFallbackURL`. Klient ji zkusí po síťové chybě nebo po
+odpovědi 502/503/504 z Cloud Run.
+
 Zadává se pouze origin backendu, tedy bez koncového `/api/v1`; klient si
 verzovanou cestu přidá sám.
 
-Poznámka: `localhost` v iOS Simulatoru odkazuje na Mac. Pro fyzické zařízení
-použij HTTPS vývojovou adresu dostupnou z telefonu. Dočasné nezabezpečené LAN
-HTTP vyžaduje samostatnou, úzce omezenou ATS výjimku a nepatří do Release.
+Poznámka: `localhost` v iOS Simulatoru odkazuje na Mac, ale na fyzickém iPhonu
+na samotný telefon. Pro backend spuštěný na Macu proto jako fallback použij
+jeho LAN adresu, například `http://192.168.1.20:4000`, a měj obě zařízení na
+stejné Wi-Fi. Pro produkci použij HTTPS adresu.
 
 Produkční API origin je
 `https://duocards-backend-731652720086.europe-west1.run.app`. Klient si cestu
@@ -43,8 +48,8 @@ omezený Associated Domains entitlement. Do té doby uživatel vloží celý odk
 3. V Xcode otevři target **DuoCards → Signing & Capabilities**, nech zapnuté
    **Automatically manage signing** a vyber svůj Apple Developer Team. Pokud je
    `xyz.duocards.ios` obsazené pro jiný tým, nastav vlastní unikátní Bundle ID.
-4. V **Product → Scheme → Edit Scheme → Run → Arguments** přidej environment
-   proměnnou `DUOCARDS_API_BASE_URL` s HTTPS originem backendu, bez `/api/v1`.
+4. V **Product → Scheme → Edit Scheme → Run → Arguments** můžeš přidat
+   `DUOCARDS_API_FALLBACK_URL=http://IP-MACU:4000`, bez `/api/v1`.
 5. V horní liště Xcode vyber připojený iPhone a stiskni **Run**. První signed
    instalace je zároveň poslední kontrola provisioningu; unsigned terminálový build
    ji nedokáže nahradit.
