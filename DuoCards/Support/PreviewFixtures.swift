@@ -104,6 +104,10 @@ actor MockDuoCardsAPI: DuoCardsAPI {
         ) + 1
     }
 
+    func checkHealth() async -> Bool {
+        true
+    }
+
     func login(email: String, password: String) async throws -> User {
         user
     }

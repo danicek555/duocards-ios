@@ -15,15 +15,28 @@ struct AppConfiguration: Sendable {
 
     static func live(
         bundle: Bundle = .main,
-        processInfo: ProcessInfo = .processInfo
+        processInfo: ProcessInfo = .processInfo,
+        store: BackendSettingsStore = BackendSettingsStore()
     ) -> AppConfiguration {
         AppConfiguration(
-            baseURL: resolvedBaseURL(bundle: bundle, processInfo: processInfo),
+            baseURL: resolvedBaseURL(
+                bundle: bundle,
+                processInfo: processInfo,
+                store: store
+            ),
             fallbackBaseURL: resolvedFallbackBaseURL(
                 bundle: bundle,
                 processInfo: processInfo
             )
         )
+    }
+
+    /// True when a user-configured custom server is the active base URL, i.e. the
+    /// app is pointed at a self-hosted/local backend rather than the default.
+    static func isUsingCustomServer(
+        store: BackendSettingsStore = BackendSettingsStore()
+    ) -> Bool {
+        store.customBaseURL != nil
     }
 
     private static func resolvedFallbackBaseURL(
@@ -50,7 +63,8 @@ struct AppConfiguration: Sendable {
 
     private static func resolvedBaseURL(
         bundle: Bundle,
-        processInfo: ProcessInfo
+        processInfo: ProcessInfo,
+        store: BackendSettingsStore
     ) -> URL {
         let arguments = processInfo.arguments
         if let flagIndex = arguments.firstIndex(of: "-duocardsAPIBaseURL"),
@@ -62,6 +76,12 @@ struct AppConfiguration: Sendable {
         if let environmentValue = processInfo.environment["DUOCARDS_API_BASE_URL"],
            let environmentURL = validURL(environmentValue) {
             return environmentURL
+        }
+
+        // A user-chosen custom server (persisted in settings) overrides the
+        // built-in default but not explicit launch-argument/environment overrides.
+        if let customURL = store.customBaseURL {
+            return customURL
         }
 
         if let plistValue = bundle.object(

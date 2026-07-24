@@ -22,6 +22,20 @@ odpovědi 502/503/504 z Cloud Run.
 Zadává se pouze origin backendu, tedy bez koncového `/api/v1`; klient si
 verzovanou cestu přidá sám.
 
+## Cloud Run vs. vlastní (lokální) server
+
+Při startu aplikace proběhne health-check nastaveného backendu. Pokud Cloud Run
+odpovídá, aplikace pokračuje normálně. Pokud je Cloud Run vypnutý a backend
+neodpovídá, zobrazí se banner „Backend (Cloud Run) je nedostupný“ s možností
+*Zkusit znovu* a *Nastavit server*.
+
+V *Nastavení serveru* (ikona ozubeného kola na úvodní obrazovce) lze zadat
+adresu **vlastního (lokálního) backendu**, například `http://192.168.1.20:4000`.
+Uložená adresa se persistuje v `UserDefaults` a přepíše výchozí Cloud Run origin
+(nepřebije ale launch argument/environment proměnnou pro vývoj). Volbou *Použít
+výchozí Cloud Run* se aplikace vrátí zpět. Podrobný popis modelu je v
+[backend dokumentaci](https://github.com/danicek555/duocards-backend/blob/main/docs/CLOUD_RUN_AND_LOCAL_BACKEND.md).
+
 Poznámka: `localhost` v iOS Simulatoru odkazuje na Mac, ale na fyzickém iPhonu
 na samotný telefon. Pro backend spuštěný na Macu proto jako fallback použij
 jeho LAN adresu, například `http://192.168.1.20:4000`, a měj obě zařízení na

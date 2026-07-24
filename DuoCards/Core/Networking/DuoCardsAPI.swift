@@ -1,6 +1,9 @@
 import Foundation
 
 protocol DuoCardsAPI: Sendable {
+    /// Lightweight reachability probe against the backend health endpoint.
+    /// Returns true when the backend answers, false on any error or timeout.
+    func checkHealth() async -> Bool
     func login(email: String, password: String) async throws -> User
     func requestPasswordReset(
         request: ForgotPasswordRequest
@@ -58,6 +61,10 @@ struct DuoCardsAPIClient: DuoCardsAPI, Sendable {
             baseURL: configuration.baseURL,
             fallbackBaseURL: configuration.fallbackBaseURL
         )
+    }
+
+    func checkHealth() async -> Bool {
+        await client.checkHealth()
     }
 
     func login(email: String, password: String) async throws -> User {

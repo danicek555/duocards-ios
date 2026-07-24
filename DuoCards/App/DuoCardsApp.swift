@@ -28,8 +28,7 @@ struct DuoCardsApp: App {
 #endif
 
         let configuration = AppConfiguration.live()
-        let api = DuoCardsAPIClient(configuration: configuration)
-        _session = State(initialValue: AppSession(api: api))
+        _session = State(initialValue: AppSession(configuration: configuration))
     }
 
     var body: some Scene {
@@ -39,7 +38,7 @@ struct DuoCardsApp: App {
                 .tint(DuoColors.indigo600)
                 .task {
                     if demoScreen == nil {
-                        await session.restoreIfNeeded()
+                        await session.startup()
                     }
                 }
                 .onOpenURL { url in

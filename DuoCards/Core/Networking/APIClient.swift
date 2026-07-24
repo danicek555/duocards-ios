@@ -83,6 +83,38 @@ actor APIClient {
         _ = try await execute(path: path, method: method, body: encodedBody)
     }
 
+    /// Probes the backend `/health` endpoint. Tries the primary origin first and
+    /// the fallback second, so it reports reachable when either can serve traffic.
+    func checkHealth() async -> Bool {
+        if await probeHealth(baseURL: baseURL) {
+            return true
+        }
+        if let fallbackBaseURL {
+            return await probeHealth(baseURL: fallbackBaseURL)
+        }
+        return false
+    }
+
+    private func probeHealth(baseURL: URL) async -> Bool {
+        let url = baseURL.appending(path: "health")
+        guard url.scheme != nil, url.host != nil else { return false }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = Method.get.rawValue
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.timeoutInterval = 6
+
+        do {
+            let (_, response) = try await session.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse else {
+                return false
+            }
+            return (200..<300).contains(httpResponse.statusCode)
+        } catch {
+            return false
+        }
+    }
+
     func clearAuthenticationCookies() {
         for url in [baseURL, fallbackBaseURL].compactMap({ $0 }) {
             for cookie in cookieStorage.cookies(for: url) ?? []
